@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_menu"
+    tools:showIn="navigation_view">
+    <group
+        android:checkableBehavior="single"
+        android:id="@+id/menu_tool">
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/ic_menu_camera"
+            android:title="@string/menu_home" />
+        <item
+            android:id="@+id/nav_gallery"
+            android:icon="@drawable/ic_menu_gallery"
+            android:title="@string/menu_gallery" />
+        <item
+            android:id="@+id/nav_slideshow"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="@string/menu_slideshow" />
+
+        <!-- 可添加更多项，超过高度时会自动滚动 -->
+        <item
+            android:id="@+id/nav_item3"
+            android:title="tool3" />
+        <item
+            android:id="@+id/nav_item4"
+            android:title="tool3" />
+        <!--        <item android:id="@+id/nav_item5" android:title="tool3" />-->
+        <!--        <item android:id="@+id/nav_item6" android:title="tool3" />-->
+        <!--        <item android:id="@+id/nav_item7" android:title="tool3" />-->
+        <!--        <item android:id="@+id/nav_item8" android:title="tool3" />-->
+        <!--        <item android:id="@+id/nav_item9" android:title="tool3" />-->
+        <!--        <item android:id="@+id/nav_item10" android:title="tool3" />-->
+        <!--        <item android:id="@+id/nav_item11" android:title="tool3" />-->
+        <!--        <item android:id="@+id/nav_item12" android:title="tool3" />-->
+        <!--        <item android:id="@+id/nav_item13" android:title="tool3" />-->
+        <!--        <item android:id="@+id/nav_item14" android:title="tool3" />-->
+        <!--        <item android:id="@+id/nav_item15" android:title="tool3" />-->
+        <!--        <item android:id="@+id/nav_item16" android:title="tool3" />-->
+    </group>
+</menu>
