@@ -6,12 +6,11 @@ import android.os.Bundle
 import android.provider.DocumentsContract
 import android.view.Menu
 import android.view.View
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavArgument
 import androidx.navigation.NavType
 import androidx.navigation.findNavController
@@ -22,58 +21,56 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.diana.tools.databinding.ActivityMainBinding
 import com.diana.tools.ui.WebpageViewerFragment
-import com.diana.tools.ui.home.HomeViewModel
 import com.google.android.material.navigation.NavigationView
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    private var rootDirUri: Uri? = null
-    private val toolDirList = mutableListOf<String>()
-    private val idList = mutableListOf<Int>()
+    private lateinit var appBarConfiguration: AppBarConfiguration
 
+    private val mainViewModel: MainViewModel by viewModels()
 
-    private val pickRootDirectoryLauncher = registerForActivityResult<Uri?, Uri?>(
-        ActivityResultContracts.OpenDocumentTree() // 系统提供的“选择目录”契约
-    ) { directoryUri: Uri? ->
-        // 3. 处理返回结果（用户选择目录后回调）
-        if (directoryUri != null) {
-            // 申请持久化权限（避免重启后失效）
-            val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-            contentResolver.takePersistableUriPermission(directoryUri, takeFlags)
+    private val rootDirUri by lazy { mainViewModel.rootDirUri }
+    private val toolDirList by lazy { mainViewModel.toolDirList }
+    private val idList by lazy { mainViewModel.idList }
 
-            // 保存目录 Uri 或直接使用
-            saveRootDirectory(directoryUri)
-        }
-    }
+//    private var rootDirUri: Uri? = null
+//    private val toolDirList = mutableListOf<String>()
+//    private val idList = mutableListOf<Int>()
+
+//    private val pickRootDirectoryLauncher = registerForActivityResult<Uri?, Uri?>(
+//        ActivityResultContracts.OpenDocumentTree()
+//    ) { directoryUri: Uri? ->
+//        if (directoryUri != null) {
+//            val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+//            contentResolver.takePersistableUriPermission(directoryUri, takeFlags)
+//            setRootDirectory(directoryUri)
+//        }
+//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        rootDirUri = getRootDirectoryUri()
-        if (rootDirUri != null) {
-            // 已选择，直接读取目录下的文件
-//            readFilesInDirectory(savedUri)
-        } else {
-            // 未选择，提示用户选择目录（例如：显示按钮让用户触发 pickDirectory()）
-            pickRootDirectoryLauncher.launch(null)
-        }
-
-
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         setSupportActionBar(binding.appBarMain.toolbar)
+//        val mainViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+//        mainViewModel.rootDirUri.observe(this) {
+//            setRootDirectory(it)
+//        }
 
+//        val selectRootDirButton: Button = findViewById(R.id.select_root_dir_button)
+//        selectRootDirButton.setOnClickListener {
+//            pickRootDirectoryLauncher.launch(null)
+//        }
 
-
-        scanDirs()
-        updateTools()
-
-        val homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
-        homeViewModel.setData(toolDirList, idList)
+        getRootDirectoryUri()?.let { mainViewModel.updateRootDirUri(it) }
+        rootDirUri.observe(this) { newData ->
+            newData?.let {
+                setRootDirectory(it)
+                updateTools()
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -87,44 +84,60 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-    private fun saveRootDirectory(uri: Uri) {
-        // 实现保存逻辑（如存入 SharedPreferences）
-        getSharedPreferences("app_prefs", MODE_PRIVATE)
-            .edit {
-                putString("root_dir", uri.toString())
-            }
-    }
-
     private fun getRootDirectoryUri(): Uri? {
         val rootDir = getSharedPreferences("app_prefs", MODE_PRIVATE).getString("root_dir", null)
         return rootDir?.toUri()
     }
 
-    // 读取目录下的所有文件（仅读取，不修改）
-    private fun scanDirs() {
-        toolDirList.clear()
+    private fun setRootDirectory(rootDirUri: Uri) {
+        val appPrefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        val oldRootDir = appPrefs.getString("root_dir", null)
 
-        // 1. 构建查询参数：列出目录下的所有文件
+        if (rootDirUri.toString() == oldRootDir) {
+            return
+        }
+
+        appPrefs.edit {
+            putString("root_dir", rootDirUri.toString())
+        }
+
+//   TODO:     release old permission
+        oldRootDir?.toUri().let { }
+//        grant new permission
+        val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        contentResolver.takePersistableUriPermission(rootDirUri, takeFlags)
+    }
+
+//    private fun releasePersistablePermission(uri: Uri?) {
+//        if (uri == null) return
+//        val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+//        val hasTargetPermission = contentResolver.getPersistedUriPermissions().any { permission ->
+//            permission.uri == uri && (permission.modeFlags and takeFlags) != 0
+//        }
+//        // 存在权限则释放
+//        if (hasTargetPermission) {
+//            contentResolver.releasePersistableUriPermission(uri, takeFlags)
+//        }
+//    }
+
+    private fun updateTools() {
+//        scan tools
+        val _toolDirList = mutableListOf<String>()
         val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
-            rootDirUri,
-            DocumentsContract.getTreeDocumentId(rootDirUri)
+            rootDirUri.value,
+            DocumentsContract.getTreeDocumentId(rootDirUri.value)
         )
-
-        // 3. 定义需要查询的字段（至少包含类型和名称）
         val projection = arrayOf(
-            DocumentsContract.Document.COLUMN_DISPLAY_NAME,  // 目录/文件名
-            DocumentsContract.Document.COLUMN_MIME_TYPE,     // 类型（目录为 MIME_TYPE_DIR）
+            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+            DocumentsContract.Document.COLUMN_MIME_TYPE,
         )
-
-        // 4. 执行查询
         contentResolver.query(
             childrenUri,
             projection,
-            null,  // 筛选条件（不筛选，返回所有子项）
             null,
-            null   // 排序方式（默认按名称排序）
+            null,
+            null
         )?.use { cursor ->
-            // 5. 遍历结果，筛选出目录（MIME_TYPE 为目录类型）
             while (cursor.moveToNext()) {
                 val name = cursor.getString(
                     cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
@@ -133,28 +146,27 @@ class MainActivity : AppCompatActivity() {
                     cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_MIME_TYPE)
                 )
 
-                // 判断是否为目录（MIME_TYPE_DIR 表示目录）
                 if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
-                    toolDirList.add(name)
+                    _toolDirList.add(name)
                 }
             }
         }
-    }
 
-    private fun updateTools() {
+//        update menu and navigation
         val navView: NavigationView = binding.navView
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         val navGraph = navController.graph
 
-        repeat(toolDirList.size) {
-            idList.add(View.generateViewId())
+        val _idList = mutableListOf<Int>()
+        repeat(_toolDirList.size) {
+            _idList.add(View.generateViewId())
         }
 
-        toolDirList.forEachIndexed { index, dirName ->
+        _toolDirList.forEachIndexed { index, dirName ->
             navView.menu.add(
                 R.id.menu_tool,
-                idList[index],
+                _idList[index],
                 Menu.NONE,
                 dirName
             ).apply {
@@ -165,22 +177,17 @@ class MainActivity : AppCompatActivity() {
                 navController.navigatorProvider
             ).apply {
                 setClassName(WebpageViewerFragment::class.java.name)
-                id = idList[index]
+                id = _idList[index]
                 label = dirName
-
-                val webUrl = DocumentsContract.buildDocumentUriUsingTree(
-                    rootDirUri,
-                    DocumentsContract.getTreeDocumentId(rootDirUri) + "/$dirName/index.html"
-                ).toString()
 
                 addArgument(
                     "root_uri", NavArgument.Builder()
-                        .setDefaultValue(rootDirUri.toString())
+                        .setDefaultValue(rootDirUri.value.toString())
                         .setType(NavType.StringType)
                         .build()
                 )
                 addArgument(
-                    "dirname", NavArgument.Builder()
+                    "dir_name", NavArgument.Builder()
                         .setDefaultValue(dirName)
                         .setType(NavType.StringType)
                         .build()
@@ -189,12 +196,14 @@ class MainActivity : AppCompatActivity() {
             navGraph.addDestination(toolDestination)
         }
 
-
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow) + idList.toSet(),
+            setOf(R.id.nav_home) + _idList.toSet(),
             drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+//        update viewModel data
+        mainViewModel.updateToolList(_toolDirList, _idList)
     }
 }

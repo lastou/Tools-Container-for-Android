@@ -31,7 +31,7 @@ class WebpageViewerFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         rootUri = requireArguments().getString("root_uri")!!
-        dirName = requireArguments().getString("dirname")!!
+        dirName = requireArguments().getString("dir_name")!!
 
     }
 

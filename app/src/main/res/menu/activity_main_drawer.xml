@@ -10,22 +10,7 @@
             android:id="@+id/nav_home"
             android:icon="@drawable/ic_menu_camera"
             android:title="@string/menu_home" />
-        <item
-            android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="@string/menu_gallery" />
-        <item
-            android:id="@+id/nav_slideshow"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/menu_slideshow" />
 
-        <!-- 可添加更多项，超过高度时会自动滚动 -->
-        <item
-            android:id="@+id/nav_item3"
-            android:title="tool3" />
-        <item
-            android:id="@+id/nav_item4"
-            android:title="tool3" />
         <!--        <item android:id="@+id/nav_item5" android:title="tool3" />-->
         <!--        <item android:id="@+id/nav_item6" android:title="tool3" />-->
         <!--        <item android:id="@+id/nav_item7" android:title="tool3" />-->

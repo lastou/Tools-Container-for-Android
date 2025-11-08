@@ -1,16 +1,18 @@
 package com.diana.tools.ui.home
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.diana.tools.MainViewModel
 import com.diana.tools.R
 import com.diana.tools.databinding.FragmentHomeBinding
 
@@ -22,34 +24,54 @@ class HomeFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
+    private val mainViewModel: MainViewModel by activityViewModels()
+    private val pickRootDirectoryLauncher = registerForActivityResult<Uri?, Uri?>(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { directoryUri: Uri? ->
+        if (directoryUri != null) {
+            mainViewModel.updateRootDirUri(directoryUri)
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val homeViewModel =
-            ViewModelProvider(requireActivity()).get(HomeViewModel::class.java)
-
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val selectRootDirButton: Button = binding.selectRootDirButton
-        selectRootDirButton.setOnClickListener {
+        val selectRootDirButton = binding.selectRootDirButton
+        val recyclerCard = binding.recyclerCard
+        val recyclerView = binding.recyclerView
 
+        // show button or recyclerView
+        if (mainViewModel.rootDirUri.value == null) {
+            selectRootDirButton.visibility = View.VISIBLE
+            recyclerCard.visibility = View.GONE
+        } else {
+            selectRootDirButton.visibility = View.GONE
+            recyclerCard.visibility = View.VISIBLE
         }
 
-        val recyclerView = binding.recyclerView
-        recyclerView.layoutManager = LinearLayoutManager(context)
-        val toolListAdapter = ToolListAdapter(mutableListOf())
-        recyclerView.adapter = toolListAdapter
-
-        // --- 关键：观察 LiveData 的变化 ---
-        homeViewModel.toolDirList.observe(viewLifecycleOwner, Observer { newData ->
-            newData?.let {
-                toolListAdapter.updateData(it) // 假设 Adapter 有 updateData 方法
+        selectRootDirButton.setOnClickListener {
+            pickRootDirectoryLauncher.launch(null)
+        }
+        mainViewModel.rootDirUri.observe(viewLifecycleOwner, Observer { newData ->
+            if (newData != null) {
+                selectRootDirButton.visibility = View.GONE
+                recyclerCard.visibility = View.VISIBLE
             }
         })
 
+        recyclerView.layoutManager = LinearLayoutManager(context)
+        val toolListAdapter = ToolListAdapter(mutableListOf())
+        recyclerView.adapter = toolListAdapter
+        mainViewModel.toolDirList.observe(viewLifecycleOwner, Observer { newData ->
+            newData?.let {
+                toolListAdapter.updateData(it)
+            }
+        })
 
         return root
     }
@@ -60,8 +82,6 @@ class HomeFragment : Fragment() {
     }
 }
 
-
-// 你的 Adapter 需要一个更新数据的方法
 class ToolListAdapter(private val itemList: MutableList<String>) :
     RecyclerView.Adapter<ToolListAdapter.ViewHolder>() {
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -69,28 +89,21 @@ class ToolListAdapter(private val itemList: MutableList<String>) :
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        // 加载 item 布局
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.home_recycler_item, parent, false)
-        // 返回一个新的 ViewHolder
         return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        // 获取当前位置的数据
         val currentText = itemList[position]
-        // 将数据设置到 ViewHolder 的控件上
         holder.textView.text = currentText
     }
 
     override fun getItemCount() = itemList.size
 
     fun updateData(newItems: List<String>) {
-        // 清空旧数据
         itemList.clear()
-        // 添加新数据
         itemList.addAll(newItems)
-        // 通知 RecyclerView 数据集已改变，需要刷新整个列表
         notifyDataSetChanged()
     }
 
