@@ -13,7 +13,6 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.diana.tools.databinding.FragmentWebpageViewerBinding
 
@@ -74,24 +73,8 @@ class WebpageViewerFragment : Fragment() {
             }
         }
 
+        webpageViewer.loadUrl(rootUri + "/index.html")
 
-        val webUri = DocumentsContract.buildDocumentUriUsingTree(
-            rootUri.toUri(),
-            DocumentsContract.getTreeDocumentId(rootUri.toUri()) + "/$dirName/index.html"
-        )
-
-        val htmlContent = try {
-            context?.contentResolver?.openInputStream(webUri)?.bufferedReader()?.readText()
-        } catch (e: Exception) {
-            Log.e("WebView", "读取 HTML 失败: ${e.message}")
-            null
-        }
-
-        if (htmlContent != null) {
-            // 使用 SAF 目录的 Uri 作为 baseUrl，确保相对路径能被正确解析
-            val baseUrl = rootUri + "/"
-            webpageViewer.loadDataWithBaseURL(baseUrl, htmlContent, "text/html", "UTF-8", null)
-        }
         return root
     }
 

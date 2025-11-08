@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavArgument
 import androidx.navigation.NavType
 import androidx.navigation.findNavController
@@ -21,8 +22,8 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.diana.tools.databinding.ActivityMainBinding
 import com.diana.tools.ui.WebpageViewerFragment
+import com.diana.tools.ui.home.HomeViewModel
 import com.google.android.material.navigation.NavigationView
-import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,6 +31,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private var rootDirUri: Uri? = null
     private val toolDirList = mutableListOf<String>()
+    private val idList = mutableListOf<Int>()
+
 
     private val pickRootDirectoryLauncher = registerForActivityResult<Uri?, Uri?>(
         ActivityResultContracts.OpenDocumentTree() // 系统提供的“选择目录”契约
@@ -64,14 +67,13 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.appBarMain.toolbar)
 
-        binding.appBarMain.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null)
-                .setAnchorView(R.id.fab).show()
-        }
+
 
         scanDirs()
         updateTools()
+
+        val homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
+        homeViewModel.setData(toolDirList, idList)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -145,15 +147,14 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         val navGraph = navController.graph
 
-        val menuIdList = mutableListOf<Int>()
         repeat(toolDirList.size) {
-            menuIdList.add(View.generateViewId())
+            idList.add(View.generateViewId())
         }
 
         toolDirList.forEachIndexed { index, dirName ->
             navView.menu.add(
                 R.id.menu_tool,
-                menuIdList[index],
+                idList[index],
                 Menu.NONE,
                 dirName
             ).apply {
@@ -164,20 +165,13 @@ class MainActivity : AppCompatActivity() {
                 navController.navigatorProvider
             ).apply {
                 setClassName(WebpageViewerFragment::class.java.name)
-                id = menuIdList[index]
+                id = idList[index]
                 label = dirName
 
                 val webUrl = DocumentsContract.buildDocumentUriUsingTree(
                     rootDirUri,
                     DocumentsContract.getTreeDocumentId(rootDirUri) + "/$dirName/index.html"
                 ).toString()
-
-//                addArgument(
-//                    "web_url", NavArgument.Builder()
-//                        .setDefaultValue(webUrl)
-//                        .setType(NavType.StringType)
-//                        .build()
-//                )
 
                 addArgument(
                     "root_uri", NavArgument.Builder()
@@ -197,7 +191,7 @@ class MainActivity : AppCompatActivity() {
 
 
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow) + menuIdList.toSet(),
+            setOf(R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow) + idList.toSet(),
             drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)

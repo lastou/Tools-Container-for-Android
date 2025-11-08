@@ -1,17 +1,17 @@
 package com.diana.tools.ui.home
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class HomeViewModel : ViewModel() {
+    private val _toolDirList = MutableLiveData<List<String>>()
+    private val _idList = MutableLiveData<List<Int>>()
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is home Fragment"
-    }
-    val text: LiveData<String> = _text
+    val toolDirList: MutableLiveData<List<String>> = _toolDirList
+    val idList: MutableLiveData<List<Int>> = _idList
 
-    fun updateData(newValue: String?) {
-        _text.value = newValue
+    fun setData(toolDirList: List<String>, idList: List<Int>) {
+        _toolDirList.value = toolDirList
+        _idList.value = idList
     }
 }
