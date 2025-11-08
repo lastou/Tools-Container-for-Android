@@ -31,8 +31,6 @@ class MainActivity : AppCompatActivity() {
     private val mainViewModel: MainViewModel by viewModels()
 
     private val rootDirUri by lazy { mainViewModel.rootDirUri }
-    private val toolDirList by lazy { mainViewModel.toolDirList }
-    private val idList by lazy { mainViewModel.idList }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -131,15 +129,16 @@ class MainActivity : AppCompatActivity() {
         val navView: NavigationView = binding.navView
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navController = findNavController(R.id.nav_host_fragment_content_main)
-        val navGraph = navController.graph
 
         val _idList = mutableListOf<Int>()
         repeat(_toolDirList.size) {
             _idList.add(View.generateViewId())
         }
-
+//        reset menu and navGraph
+        navView.menu.clear()
         navView.inflateMenu(R.menu.activity_main_drawer)
-        navController.setGraph(R.navigation.mobile_navigation)
+        val baseNavGraph = navController.navInflater.inflate(R.navigation.mobile_navigation)
+//        add new items
         _toolDirList.forEachIndexed { index, dirName ->
             navView.menu.add(
                 R.id.menu_tool,
@@ -170,8 +169,9 @@ class MainActivity : AppCompatActivity() {
                         .build()
                 )
             }
-            navGraph.addDestination(toolDestination)
+            baseNavGraph.addDestination(toolDestination)
         }
+        navController.graph = baseNavGraph
 
         appBarConfiguration = AppBarConfiguration(
             setOf(R.id.nav_home) + _idList.toSet(),

@@ -2,6 +2,7 @@ package com.diana.tools.ui
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,13 +11,19 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
+import androidx.navigation.NavOptions
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.diana.tools.MainViewModel
 import com.diana.tools.R
 import com.diana.tools.databinding.FragmentHomeBinding
 
-class HomeFragment : Fragment() {
+interface OnItemClickListener {
+    fun onItemClick(position: Int)
+}
+
+class HomeFragment : Fragment(), OnItemClickListener {
 
     private var _binding: FragmentHomeBinding? = null
 
@@ -66,6 +73,7 @@ class HomeFragment : Fragment() {
 
         recyclerView.layoutManager = LinearLayoutManager(context)
         val toolListAdapter = ToolListAdapter(mutableListOf())
+        toolListAdapter.setOnItemClickListener(this)
         recyclerView.adapter = toolListAdapter
         mainViewModel.toolDirList.observe(viewLifecycleOwner, Observer { newData ->
             newData?.let {
@@ -80,10 +88,27 @@ class HomeFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+    override fun onItemClick(position: Int) {
+        Log.i("Item Click", position.toString())
+        val resId = mainViewModel.idList.value?.get(position) ?: R.id.nav_home
+        Log.i("home id", R.id.nav_home.toString())
+        Log.i("ResId", resId.toString())
+        val options = NavOptions.Builder()
+            .setLaunchSingleTop(true)
+            .setPopUpTo(R.id.nav_home, false) // 弹出 HomeFragment 之上的所有页面
+            .build()
+        findNavController().navigate(resId, null, options)
+    }
 }
 
 class ToolListAdapter(private val itemList: MutableList<String>) :
     RecyclerView.Adapter<ToolListAdapter.ViewHolder>() {
+    private var listener: OnItemClickListener? = null
+    fun setOnItemClickListener(listener: OnItemClickListener) {
+        this.listener = listener
+    }
+
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textView: TextView = itemView.findViewById(R.id.text_view_item)
     }
@@ -97,6 +122,10 @@ class ToolListAdapter(private val itemList: MutableList<String>) :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentText = itemList[position]
         holder.textView.text = currentText
+
+        holder.itemView.setOnClickListener {
+            listener?.onItemClick(position)
+        }
     }
 
     override fun getItemCount() = itemList.size
