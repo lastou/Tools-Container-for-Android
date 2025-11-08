@@ -2,7 +2,6 @@ package com.diana.tools.ui
 
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,10 +10,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import androidx.navigation.NavOptions
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.diana.tools.MainActivity
 import com.diana.tools.MainViewModel
 import com.diana.tools.R
 import com.diana.tools.databinding.FragmentHomeBinding
@@ -90,15 +88,8 @@ class HomeFragment : Fragment(), OnItemClickListener {
     }
 
     override fun onItemClick(position: Int) {
-        Log.i("Item Click", position.toString())
-        val resId = mainViewModel.idList.value?.get(position) ?: R.id.nav_home
-        Log.i("home id", R.id.nav_home.toString())
-        Log.i("ResId", resId.toString())
-        val options = NavOptions.Builder()
-            .setLaunchSingleTop(true)
-            .setPopUpTo(R.id.nav_home, false) // 弹出 HomeFragment 之上的所有页面
-            .build()
-        findNavController().navigate(resId, null, options)
+        val destId = mainViewModel.idList.value?.get(position) ?: R.id.nav_home
+        (requireActivity() as MainActivity).navigateToId(destId)
     }
 }
 

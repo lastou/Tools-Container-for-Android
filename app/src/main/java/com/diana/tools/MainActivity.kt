@@ -183,4 +183,9 @@ class MainActivity : AppCompatActivity() {
 //        update viewModel data
         mainViewModel.updateToolList(_toolDirList, _idList)
     }
+
+    fun navigateToId(destId: Int) {
+//        simulate click
+        binding.navView.menu.performIdentifierAction(destId, 0)
+    }
 }

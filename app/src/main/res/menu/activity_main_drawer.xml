@@ -10,18 +10,5 @@
             android:id="@+id/nav_home"
             android:icon="@drawable/ic_menu_camera"
             android:title="@string/menu_home" />
-
-        <!--        <item android:id="@+id/nav_item5" android:title="tool3" />-->
-        <!--        <item android:id="@+id/nav_item6" android:title="tool3" />-->
-        <!--        <item android:id="@+id/nav_item7" android:title="tool3" />-->
-        <!--        <item android:id="@+id/nav_item8" android:title="tool3" />-->
-        <!--        <item android:id="@+id/nav_item9" android:title="tool3" />-->
-        <!--        <item android:id="@+id/nav_item10" android:title="tool3" />-->
-        <!--        <item android:id="@+id/nav_item11" android:title="tool3" />-->
-        <!--        <item android:id="@+id/nav_item12" android:title="tool3" />-->
-        <!--        <item android:id="@+id/nav_item13" android:title="tool3" />-->
-        <!--        <item android:id="@+id/nav_item14" android:title="tool3" />-->
-        <!--        <item android:id="@+id/nav_item15" android:title="tool3" />-->
-        <!--        <item android:id="@+id/nav_item16" android:title="tool3" />-->
     </group>
 </menu>
