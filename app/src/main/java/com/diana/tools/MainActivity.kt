@@ -34,19 +34,6 @@ class MainActivity : AppCompatActivity() {
     private val toolDirList by lazy { mainViewModel.toolDirList }
     private val idList by lazy { mainViewModel.idList }
 
-//    private var rootDirUri: Uri? = null
-//    private val toolDirList = mutableListOf<String>()
-//    private val idList = mutableListOf<Int>()
-
-//    private val pickRootDirectoryLauncher = registerForActivityResult<Uri?, Uri?>(
-//        ActivityResultContracts.OpenDocumentTree()
-//    ) { directoryUri: Uri? ->
-//        if (directoryUri != null) {
-//            val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-//            contentResolver.takePersistableUriPermission(directoryUri, takeFlags)
-//            setRootDirectory(directoryUri)
-//        }
-//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,15 +41,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.appBarMain.toolbar)
-//        val mainViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-//        mainViewModel.rootDirUri.observe(this) {
-//            setRootDirectory(it)
-//        }
-
-//        val selectRootDirButton: Button = findViewById(R.id.select_root_dir_button)
-//        selectRootDirButton.setOnClickListener {
-//            pickRootDirectoryLauncher.launch(null)
-//        }
 
         getRootDirectoryUri()?.let { mainViewModel.updateRootDirUri(it) }
         rootDirUri.observe(this) { newData ->
@@ -101,24 +79,21 @@ class MainActivity : AppCompatActivity() {
             putString("root_dir", rootDirUri.toString())
         }
 
-//   TODO:     release old permission
-        oldRootDir?.toUri().let { }
-//        grant new permission
+//        release old permission
         val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        if (oldRootDir != null) {
+            val oldRootDirUri = oldRootDir.toUri()
+            val hasTargetPermission = contentResolver.persistedUriPermissions
+                .any { permission ->
+                    permission.uri == oldRootDirUri && permission.isReadPermission
+                }
+            if (hasTargetPermission) {
+                contentResolver.releasePersistableUriPermission(oldRootDirUri, takeFlags)
+            }
+        }
+//        grant new permission
         contentResolver.takePersistableUriPermission(rootDirUri, takeFlags)
     }
-
-//    private fun releasePersistablePermission(uri: Uri?) {
-//        if (uri == null) return
-//        val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-//        val hasTargetPermission = contentResolver.getPersistedUriPermissions().any { permission ->
-//            permission.uri == uri && (permission.modeFlags and takeFlags) != 0
-//        }
-//        // 存在权限则释放
-//        if (hasTargetPermission) {
-//            contentResolver.releasePersistableUriPermission(uri, takeFlags)
-//        }
-//    }
 
     private fun updateTools() {
 //        scan tools
@@ -163,6 +138,8 @@ class MainActivity : AppCompatActivity() {
             _idList.add(View.generateViewId())
         }
 
+        navView.inflateMenu(R.menu.activity_main_drawer)
+        navController.setGraph(R.navigation.mobile_navigation)
         _toolDirList.forEachIndexed { index, dirName ->
             navView.menu.add(
                 R.id.menu_tool,

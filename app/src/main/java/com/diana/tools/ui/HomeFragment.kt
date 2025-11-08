@@ -1,4 +1,4 @@
-package com.diana.tools.ui.home
+package com.diana.tools.ui
 
 import android.net.Uri
 import android.os.Bundle
@@ -106,5 +106,4 @@ class ToolListAdapter(private val itemList: MutableList<String>) :
         itemList.addAll(newItems)
         notifyDataSetChanged()
     }
-
 }
