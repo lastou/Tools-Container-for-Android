@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.DocumentsContract
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -53,6 +54,19 @@ class MainActivity : AppCompatActivity() {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.main, menu)
         return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_refresh -> {
+                mainViewModel.refreshWebView()
+                true // consume the event
+            }
+
+            else -> {
+                super.onOptionsItemSelected(item)
+            }
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {

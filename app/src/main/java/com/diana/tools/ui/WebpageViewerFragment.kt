@@ -14,6 +14,9 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
+import com.diana.tools.MainViewModel
 import com.diana.tools.databinding.FragmentWebpageViewerBinding
 
 class WebpageViewerFragment : Fragment() {
@@ -26,6 +29,7 @@ class WebpageViewerFragment : Fragment() {
 
     private lateinit var rootUri: String
     private lateinit var dirName: String
+    private val mainViewModel: MainViewModel by activityViewModels()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,6 +78,10 @@ class WebpageViewerFragment : Fragment() {
         }
 
         webpageViewer.loadUrl(rootUri + "/index.html")
+
+        mainViewModel.refreshWebViewEvent.observe(viewLifecycleOwner, Observer {
+            webpageViewer.reload()
+        })
 
         return root
     }
