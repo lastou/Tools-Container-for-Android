@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.provider.DocumentsContract
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +12,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -48,7 +48,11 @@ class WebpageViewerFragment : Fragment() {
         val root: View = binding.root
 
         val webpageViewer: WebView = binding.webpageViewer
-        webpageViewer.settings.javaScriptEnabled = true
+        webpageViewer.settings.apply {
+            javaScriptEnabled = true
+        }
+        webpageViewer.isHorizontalScrollBarEnabled = false
+        webpageViewer.isVerticalScrollBarEnabled = false
         webpageViewer.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(
                 view: WebView?,
@@ -57,19 +61,16 @@ class WebpageViewerFragment : Fragment() {
                 val url = request.url.toString()
                 val context = context ?: return null
 
-                // 1. 只处理 content:// 协议的请求
+//                correct "content://" uri
                 if (url.startsWith("content://")) {
                     return try {
                         val relativePath = url.substring((rootUri + "/").length)
                         val correctFileUri = DocumentsContract.buildDocumentUriUsingTree(
-                            Uri.parse(rootUri), // 注意：这里要用你原始的、正确的目录树 Uri String
-                            DocumentsContract.getTreeDocumentId(Uri.parse(rootUri)) + "/${dirName}/${relativePath}"
+                            rootUri.toUri(),
+                            DocumentsContract.getTreeDocumentId(rootUri.toUri()) + "/${dirName}/${relativePath}"
                         )
-                        // 4. 使用修复后的正确 Uri 来获取资源
                         getWebResourceResponse(correctFileUri, context)
-
-                    } catch (e: Exception) {
-                        Log.e("WebView", "加载资源失败: $url, 错误: ${e.message}")
+                    } catch (_: Exception) {
                         null
                     }
                 }
@@ -78,33 +79,27 @@ class WebpageViewerFragment : Fragment() {
         }
 
         webpageViewer.loadUrl(rootUri + "/index.html")
-
         mainViewModel.refreshWebViewEvent.observe(viewLifecycleOwner, Observer {
             webpageViewer.reload()
         })
-
         return root
+    }
+
+    private fun getWebResourceResponse(uri: Uri, context: Context): WebResourceResponse? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            inputStream?.let {
+                val fileExtension = MimeTypeMap.getFileExtensionFromUrl(uri.toString())
+                val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension)
+                WebResourceResponse(mimeType, "UTF-8", it)
+            }
+        } catch (_: Exception) {
+            null
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    // 辅助函数，用于统一获取 WebResourceResponse
-    private fun getWebResourceResponse(uri: Uri, context: Context): WebResourceResponse? {
-        return try {
-            val inputStream = context.contentResolver.openInputStream(uri)
-            if (inputStream == null) {
-                Log.e("WebView", "无法打开资源输入流: $uri")
-                return null
-            }
-            val fileExtension = MimeTypeMap.getFileExtensionFromUrl(uri.toString())
-            val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension)
-            WebResourceResponse(mimeType, "UTF-8", inputStream)
-        } catch (e: Exception) {
-            Log.e("WebView", "获取资源响应失败: $uri, 错误: ${e.message}")
-            null
-        }
     }
 }
