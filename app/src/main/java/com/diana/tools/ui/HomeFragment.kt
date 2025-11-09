@@ -47,25 +47,31 @@ class HomeFragment : Fragment(), OnItemClickListener {
         val root: View = binding.root
 
         val selectRootDirButton = binding.selectRootDirButton
-        val recyclerCard = binding.recyclerCard
+        val changeRootDirButton = binding.changeRootDirButton
+        val scanToolButton = binding.scanToolButton
         val recyclerView = binding.recyclerView
 
         // show button or recyclerView
         if (mainViewModel.rootDirUri.value == null) {
-            selectRootDirButton.visibility = View.VISIBLE
-            recyclerCard.visibility = View.GONE
+            showSelectRootDirButton()
         } else {
-            selectRootDirButton.visibility = View.GONE
-            recyclerCard.visibility = View.VISIBLE
+            showRecyclerCard()
         }
 
         selectRootDirButton.setOnClickListener {
             pickRootDirectoryLauncher.launch(null)
         }
+        changeRootDirButton.setOnClickListener {
+            pickRootDirectoryLauncher.launch(null)
+        }
+        scanToolButton.setOnClickListener {
+//            trigger updateTools()
+            mainViewModel.rootDirUri.value?.let { mainViewModel.updateRootDirUri(it) }
+        }
+
         mainViewModel.rootDirUri.observe(viewLifecycleOwner, Observer { newData ->
             if (newData != null) {
-                selectRootDirButton.visibility = View.GONE
-                recyclerCard.visibility = View.VISIBLE
+                showRecyclerCard()
             }
         })
 
@@ -80,6 +86,30 @@ class HomeFragment : Fragment(), OnItemClickListener {
         })
 
         return root
+    }
+
+    private fun showSelectRootDirButton() {
+        val selectRootDirButton = binding.selectRootDirButton
+        val changeRootDirButton = binding.changeRootDirButton
+        val scanToolButton = binding.scanToolButton
+        val recyclerCard = binding.recyclerCard
+
+        selectRootDirButton.visibility = View.VISIBLE
+        changeRootDirButton.visibility = View.GONE
+        scanToolButton.visibility = View.GONE
+        recyclerCard.visibility = View.GONE
+    }
+
+    private fun showRecyclerCard() {
+        val selectRootDirButton = binding.selectRootDirButton
+        val changeRootDirButton = binding.changeRootDirButton
+        val scanToolButton = binding.scanToolButton
+        val recyclerCard = binding.recyclerCard
+
+        selectRootDirButton.visibility = View.GONE
+        changeRootDirButton.visibility = View.VISIBLE
+        scanToolButton.visibility = View.VISIBLE
+        recyclerCard.visibility = View.VISIBLE
     }
 
     override fun onDestroyView() {

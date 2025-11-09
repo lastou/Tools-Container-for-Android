@@ -13,4 +13,6 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="select_root_dir">select root directory</string>
+    <string name="change_root_dir">change root directory</string>
+    <string name="scan_tool">scan tools</string>
 </resources>
