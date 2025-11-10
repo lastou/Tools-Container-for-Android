@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.diana.tools.MainActivity
@@ -79,6 +80,8 @@ class HomeFragment : Fragment(), OnItemClickListener {
         val toolListAdapter = ToolListAdapter(mutableListOf())
         toolListAdapter.setOnItemClickListener(this)
         recyclerView.adapter = toolListAdapter
+        val divider = DividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL)
+        recyclerView.addItemDecoration(divider)
         mainViewModel.toolDirList.observe(viewLifecycleOwner, Observer { newData ->
             newData?.let {
                 toolListAdapter.updateData(it)
