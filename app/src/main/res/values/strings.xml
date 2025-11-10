@@ -15,4 +15,5 @@
     <string name="select_root_dir">select root directory</string>
     <string name="change_root_dir">change root directory</string>
     <string name="scan_tool">scan tools</string>
+    <string name="nav_header_image">nav header image</string>
 </resources>
