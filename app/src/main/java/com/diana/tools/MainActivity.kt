@@ -16,6 +16,7 @@ import androidx.navigation.NavArgument
 import androidx.navigation.NavType
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.FragmentNavigator
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -48,6 +49,20 @@ class MainActivity : AppCompatActivity() {
                 updateTools()
             }
         }
+
+//        initialize menu and navigation
+        val navView: NavigationView = binding.navView
+        val drawerLayout: DrawerLayout = binding.drawerLayout
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
+        val navController = navHostFragment.navController
+
+        appBarConfiguration = AppBarConfiguration(
+            setOf(R.id.nav_home),
+            drawerLayout
+        )
+        setupActionBarWithNavController(navController, appBarConfiguration)
+        navView.setupWithNavController(navController)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
