@@ -9,6 +9,7 @@ import android.view.MenuItem
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.drawerlayout.widget.DrawerLayout
@@ -176,6 +177,7 @@ class MainActivity : AppCompatActivity() {
                 dirName
             ).apply {
                 isCheckable = true
+                icon = ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_menu_tool)
             }
 
             val toolDestination = FragmentNavigator.Destination(
